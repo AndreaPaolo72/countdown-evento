@@ -2,17 +2,58 @@
 <html lang="it">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Volo ET737 — Countdown</title>
   <style>
-    body {margin:0;font-family:sans-serif;background:#0b1020;color:#fff;display:grid;place-items:center;min-height:100vh;}
-    .hero {text-align:center;padding:20px;}
-    h1 {font-size:2rem;margin-bottom:10px;}
-    .timer {display:grid;grid-template-columns:repeat(5,auto);gap:15px;justify-content:center;margin-top:20px;}
-    .tile {background:#111827;padding:10px 15px;border-radius:10px;min-width:60px;}
-    .num {font-size:2rem;font-weight:bold;font-variant-numeric:tabular-nums;}
-    .label {font-size:0.8rem;color:#9ca3af;text-transform:uppercase;}
-    .when {margin-top:15px;color:#9ca3af;}
+    body {
+      margin:0;
+      font-family:sans-serif;
+      background:#0b1020;
+      color:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:100vh;
+      padding: 10px;
+    }
+    .hero {
+      text-align:center;
+      max-width: 100%;
+      width: 100%;
+    }
+    h1 {
+      font-size:clamp(1.2rem, 4vw, 2.2rem);
+      margin-bottom:10px;
+      line-height:1.2;
+    }
+    .timer {
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(60px, 1fr));
+      gap:10px;
+      justify-content:center;
+      margin-top:20px;
+    }
+    .tile {
+      background:#111827;
+      padding:10px;
+      border-radius:10px;
+      min-width:60px;
+    }
+    .num {
+      font-size:clamp(1.5rem, 6vw, 2.5rem);
+      font-weight:bold;
+      font-variant-numeric:tabular-nums;
+    }
+    .label {
+      font-size:0.8rem;
+      color:#9ca3af;
+      text-transform:uppercase;
+    }
+    .when {
+      margin-top:15px;
+      color:#9ca3af;
+      font-size:clamp(0.9rem, 2.5vw, 1rem);
+    }
   </style>
 </head>
 <body>
