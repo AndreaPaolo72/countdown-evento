@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Countdown Evento</title>
+  <style>
+    :root{
+      --bg:#0b1020;--bg2:#0f172a;--glass:rgba(255,255,255,.06);--card:rgba(10,14,26,.7);
+      --text:#e6e9ef;--muted:#9aa4b2;--accent:#22d3ee;--accent2:#60a5fa;--good:#34d399;--danger:#f87171;
+      --ring: rgba(34,211,238,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
+      background:
+        radial-gradient(1000px 600px at 0% 0%, rgba(34,211,238,.10), transparent 60%),
+        radial-gradient(900px 600px at 100% 10%, rgba(96,165,250,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      min-height:100%; display:grid; place-items:center; padding:30px;
+    }
+
+    /* ===== HERO ===== */
+    .shell{ width:min(1100px,94vw); }
+    .hero{
+      position:relative; padding:36px clamp(18px,3vw,36px); border-radius:28px;
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid rgba(255,255,255,.10); box-shadow:0 30px 70px rgba(0,0,0,.45);
+      overflow:hidden;
+    }
+    .gear-btn{
+      position:absolute; top:14px; right:14px; border:1px solid rgba(255,255,255,.16);
+      background:var(--glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      border-radius:14px; padding:10px 12px; cursor:pointer; color:var(--text); font-weight:700;
+    }
+    .gear-btn:hover{box-shadow:0 0 0 3px var(--ring);}    
+
+    .headline{
+      display:flex; align-items:end; gap:12px; flex-wrap:wrap; margin:0 0 14px 0;
+    }
+    .title{ font-size: clamp(26px, 4.6vw, 60px); line-height:1.05; margin:0; font-weight:900; }
+    .tag{ font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+
+    .sub{ color:var(--muted); margin:2px 0 18px 0; font-size: clamp(14px, 1.6vw, 18px); }
+
+    /* Countdown tiles */
+    .timer{ display:grid; gap:14px; grid-template-columns: repeat(2, minmax(0,1fr)); }
+    @media (min-width:560px){ .timer{ grid-template-columns: repeat(5, 1fr);} }
+
+    .tile{ background:var(--card); border:1px solid rgba(255,255,255,.10); border-radius:18px; padding:18px; text-align:center; position:relative; overflow:hidden; }
+    .num{ font-size: clamp(34px, 6vw, 76px); font-weight:900; line-height:1; letter-spacing:.5px; display:inline-block; text-align:center; font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+    /* larghezze fisse per evitare riformattazioni */
+    #years.num{ width:1ch; }
+    #days.num{ width:3ch; }
+    #hours.num{ width:2ch; }
+    #minutes.num{ width:2ch; }
+    #seconds.num{ width:2ch; }
+    .label{ margin-top:6px; color:var(--muted); font-size:12px; letter-spacing:.18em; text-transform:uppercase; }
+
+    .cta{ margin-top:18px; font-size: clamp(16px, 2vw, 22px); font-weight:700; }
+    .when{ color:var(--muted); margin-top:6px; }
+
+    /* ===== OVERLAY SETTINGS ===== */
+    .overlay{ position:fixed; inset:0; display:none; place-items:center; background:rgba(3,6,12,.65); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); padding:20px; }
+    .overlay.open{ display:grid; }
+    .panel{ width:min(680px, 92vw); background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.05)); border:1px solid rgba(255,255,255,.12); border-radius:20px; padding:20px; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+    .panel h2{ margin:0 0 10px 0; font-size:22px; }
+    .row{ display:grid; grid-template-columns: 1fr; gap:14px; }
+    @media (min-width:600px){ .row{ grid-template-columns: 1fr 1fr; } }
+    label{ font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.14em; }
+    input[type="text"], input[type="datetime-local"]{ width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.16); background:#0b1220; color:var(--text); font-size:15px; outline:none; }
+    textarea{ width:100%; min-height:90px; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.16); background:#0b1220; color:var(--text); font-size:15px; resize:vertical; }
+    .btns{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; margin-top:16px; }
+    button{ cursor:pointer; border:0; border-radius:12px; padding:10px 14px; font-weight:700; }
+    .primary{ background:linear-gradient(90deg, var(--accent), var(--accent2)); color:#041019; }
+    .ghost{ background:rgba(255,255,255,.08); color:var(--text); border:1px solid rgba(255,255,255,.16); }
+    .danger{ background:var(--danger); color:#190a0a; margin-right:auto; }
+
+    /* small helper text */
+    .meta{ color:var(--muted); font-size:12px; margin-top:6px; }
+
+    /* subtle pulse around hero for excitement */
+    .pulse{ position:absolute; inset:-2px; border-radius:28px; pointer-events:none; box-shadow:0 0 0 0 rgba(34,211,238,.28); animation:pulse 3s ease-in-out infinite; }
+    @keyframes pulse{ 0%{box-shadow:0 0 0 0 rgba(34,211,238,.28);} 50%{box-shadow:0 0 0 16px rgba(34,211,238,.0);} 100%{box-shadow:0 0 0 0 rgba(34,211,238,.28);} }
+
+    footer{ text-align:center; color:var(--muted); font-size:12px; margin-top:14px; }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero" id="hero">
+      <div class="pulse"></div>
+      <button class="gear-btn" id="openSettings" title="Impostazioni">⚙︎</button>
+      <div class="headline">
+        <h1 class="title" id="eventTitle">Countdown Evento</h1>
+        <span class="tag" id="eventTag">Evento in arrivo</span>
+      </div>
+      <p class="sub" id="eventPitch">Imposta una volta, chiudi i pannelli, e mostra solo ciò che emoziona.</p>
+
+      <div class="timer">
+        <div class="tile"><span class="num" id="years">—</span><div class="label">Anni</div></div>
+        <div class="tile"><span class="num" id="days">—</span><div class="label">Giorni</div></div>
+        <div class="tile"><span class="num" id="hours">—</span><div class="label">Ore</div></div>
+        <div class="tile"><span class="num" id="minutes">—</span><div class="label">Minuti</div></div>
+        <div class="tile"><span class="num" id="seconds">—</span><div class="label">Secondi</div></div>
+      </div>
+
+      <div class="cta" id="cta">Sta per succedere: <span id="what">—</span></div>
+      <div class="when" id="when">Si parte il — alle —</div>
+    </section>
+
+    <footer id="footer">Mostra in full screen per massima resa (⌘+Ctrl+F in molti browser).</footer>
+  </div>
+
+  <!-- Overlay impostazioni -->
+  <div class="overlay" id="overlay">
+    <div class="panel">
+      <h2>Impostazioni evento</h2>
+      <div class="row" style="margin-bottom:10px;">
+        <div>
+          <label for="name">Nome evento</label>
+          <input id="name" type="text" placeholder="Es: Valgrana — Lancio Piemontino" />
+        </div>
+        <div>
+          <label for="date">Data e ora (locale)</label>
+          <input id="date" type="datetime-local" />
+        </div>
+      </div>
+      <div>
+        <label for="action">Cosa succede al termine</label>
+        <textarea id="action" placeholder="Es: Presentazione ufficiale, apertura vendite, live streaming..."></textarea>
+      </div>
+      <div class="btns">
+        <button class="danger" id="reset">Reset</button>
+        <button class="ghost" id="cancel">Annulla</button>
+        <button class="primary" id="save">Salva</button>
+      </div>
+      <div class="meta">I dati sono salvati nel <em>localStorage</em> di questo Mac. Una volta salvato, l'interfaccia mostra solo il countdown; riapri questa finestra impostazioni con l'icona ⚙︎.</div>
+    </div>
+  </div>
+
+  <script>
+    (function(){
+      const qs = id => document.getElementById(id);
+      const els = {
+        years: qs('years'), days: qs('days'), hours: qs('hours'), minutes: qs('minutes'), seconds: qs('seconds'),
+        title: qs('eventTitle'), tag: qs('eventTag'), pitch: qs('eventPitch'), when: qs('when'), what: qs('what'),
+        overlay: qs('overlay'), openSettings: qs('openSettings'),
+        name: qs('name'), date: qs('date'), action: qs('action'), save: qs('save'), cancel: qs('cancel'), reset: qs('reset'),
+      };
+
+      const STORAGE_KEY = 'countdown:event:v2';
+
+      function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+      function addYears(date, years){
+        const d = new Date(date.getTime());
+        const m = d.getMonth();
+        d.setFullYear(d.getFullYear()+years);
+        if(d.getMonth() !== m){ d.setDate(0); }
+        return d;
+      }
+
+      function diffComponents(from,to){
+        let sign = 1; if(to < from){ sign = -1; [from,to] = [to,from]; }
+        let years = 0; while(true){ const next = addYears(from, years+1); if(next <= to) years++; else break; if(years>200) break; }
+        const afterYears = addYears(from, years);
+        let rem = to - afterYears; const dayMs=864e5;
+        const days = Math.floor(rem/dayMs); rem -= days*dayMs;
+        const hours = Math.floor(rem/36e5); rem -= hours*36e5;
+        const minutes = Math.floor(rem/6e4); rem -= minutes*6e4;
+        const seconds = Math.floor(rem/1e3);
+        return {years, days, hours, minutes, seconds, sign};
+      }
+
+      function load(){ try{ const j = localStorage.getItem(STORAGE_KEY); return j? JSON.parse(j): null; }catch(e){ return null; } }
+      function save(obj){ localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); }
+      function clear(){ localStorage.removeItem(STORAGE_KEY); }
+
+      function fmt2(n){ return String(Math.floor(Math.max(0,n))).padStart(2,'0'); }
+
+      function hydrateUI(){
+        const st = load();
+        if(st){
+          els.title.textContent = st.name || 'Evento';
+          els.what.textContent = st.action || '—';
+          const d = new Date(st.iso);
+          if(!isNaN(d.getTime())){
+            const dateStr = d.toLocaleDateString(undefined, {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+            const timeStr = d.toLocaleTimeString(undefined, {hour:'2-digit', minute:'2-digit'});
+            els.when.textContent = `Si parte ${dateStr} alle ${timeStr}`;
+          } else {
+            els.when.textContent = 'Imposta data e ora';
+          }
+        } else {
+          // Primo avvio: apri impostazioni
+          openPanel();
+        }
+      }
+
+      function render(){
+        const st = load();
+        if(!st){ ['years','days','hours','minutes','seconds'].forEach(k=> els[k].textContent='—'); return; }
+        const target = new Date(st.iso); const now = new Date();
+        const {years, days, hours, minutes, seconds, sign} = diffComponents(now, target);
+        els.years.textContent = years; els.days.textContent = days; els.hours.textContent = fmt2(hours); els.minutes.textContent = fmt2(minutes); els.seconds.textContent = fmt2(seconds);
+        document.title = `${st.name} — ${years}a ${days}g ${fmt2(hours)}:${fmt2(minutes)}:${fmt2(seconds)}`;
+        // aggiorna microcopie quando passato
+        if(sign < 0){
+          els.tag.textContent = 'In corso';
+          els.when.textContent = `${st.name} è iniziato`;
+        } else {
+          els.tag.textContent = 'Evento in arrivo';
+        }
+      }
+
+      // Overlay handlers
+      function openPanel(){ els.overlay.classList.add('open');
+        const st = load(); if(st){ els.name.value = st.name || ''; const d=new Date(st.iso); if(!isNaN(d)){
+            const pad=(n)=>String(n).padStart(2,'0');
+            els.date.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+          }
+          els.action.value = st.action || '';
+        } }
+      function closePanel(){ els.overlay.classList.remove('open'); }
+
+      els.openSettings.addEventListener('click', openPanel);
+      els.cancel.addEventListener('click', closePanel);
+      els.reset.addEventListener('click', ()=>{ if(confirm('Cancellare impostazioni salvate?')){ clear(); closePanel(); hydrateUI(); render(); } });
+      els.save.addEventListener('click', ()=>{
+        const name = (els.name.value||'').trim(); const v = els.date.value; const action = (els.action.value||'').trim();
+        if(!name){ alert('Inserisci il nome evento.'); return; }
+        if(!v){ alert('Scegli data e ora.'); return; }
+        const d = new Date(v); if(isNaN(d.getTime())){ alert('Data/ora non valida.'); return; }
+        save({ name, iso: d.toISOString(), action });
+        closePanel(); hydrateUI(); render();
+      });
+
+      hydrateUI(); render();
+      setInterval(render, 1000);
+    })();
+  </script>
+</body>
+</html>
